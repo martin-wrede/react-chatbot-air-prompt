@@ -11,64 +11,64 @@ function App() {
   
    const [gesamtPrompt, setGesamtPrompt] = useState("")
 
-   
-const sendMessage = async () => {
-  if (!inputMessage.trim() && uploadedFiles.length === 0) return;
+  const sendMessage = async () => {
+    if (!inputMessage.trim()) return;
 
-  let messageContent = inputMessage;
+    // Create user message with file context if files are uploaded
+    let messageContent = inputMessage;
+    if (uploadedFiles.length > 0) {
+      const fileContext = uploadedFiles.map(file => 
+        `[File: ${file.name}]\n${file.content}`
+      ).join('\n\n---\n\n');
+      
+      messageContent = `${messageContent}\n\n[Uploaded Files Context:]\n${fileContext}`;
+    }
 
-  // Combine file content if available
-  if (uploadedFiles.length > 0) {
-    const fileContext = uploadedFiles.map(file =>
-      `[Datei: ${file.name}]\n${file.content}`
-    ).join('\n\n---\n\n');
+    const userMessage = { role: 'user', content: messageContent };
+    setMessages(prev => [...prev, { role: 'user', content: inputMessage }]); // Show only user input in UI
+    setInputMessage('');
+    setIsLoading(true);
 
-    messageContent = `${messageContent}\n\n[Hochgeladene Dateien:]\n${fileContext}`;
-  }
+    try {
+      // Send conversation history with file context included
+      const conversationHistory = [...messages, userMessage];
+    
+      //    const response = await fetch('/ai', {
+      const response = await fetch('/ai', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: messageContent,
+          messages: conversationHistory,
+          files: uploadedFiles // Keep this for backend processing if needed
+        }),
+      });
 
-  const userMessage = { role: 'user', content: messageContent };
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
 
-  setMessages(prev => [...prev, userMessage]);
-  setInputMessage('');
-  setIsLoading(true);
+      const data = await response.json();
+      console.log("AI Response:", data);
 
-  try {
-    const conversationHistory = [
-      { role: "system", content: gesamtPrompt },
-      ...messages,
-      userMessage
-    ];
+      const assistantMessage = {
+        role: 'assistant',
+        content: data.choices?.[0]?.message?.content || 'Entschuldigung, ich konnte keine Antwort generieren.'
+      };
 
-    const response = await fetch('/ai', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        message: messageContent,
-        messages: conversationHistory,
-        files: uploadedFiles
-      }),
-    });
+      setMessages(prev => [...prev, assistantMessage]);
 
-    const data = await response.json();
-
-    const assistantMessage = {
-      role: 'assistant',
-      content: data.choices?.[0]?.message?.content || 'Keine Antwort generiert.'
-    };
-
-    setMessages(prev => [...prev, assistantMessage]);
-
-  } catch (error) {
-    console.error("Error sending message:", error);
-    setMessages(prev => [...prev, {
-      role: 'assistant',
-      content: 'Fehler bei der Verarbeitung.'
-    }]);
-  } finally {
-    setIsLoading(false);
-  }
-};
-
+    } catch (error) {
+      console.error("Error sending message:", error);
+      const errorMessage = {
+        role: 'assistant',
+        content: 'Entschuldigung, es gab einen Fehler bei der Verarbeitung deiner Nachricht.'
+      };
+      setMessages(prev => [...prev, errorMessage]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleKeyPress = (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {

@@ -9,6 +9,7 @@ export default function Form(props){
         solution: "flexiblere Arbeitszeiten",
         result: "Software",
         period: "12", 
+        date: "", 
         industry: "Software"
     }
     )
@@ -25,50 +26,23 @@ const handleSubmit = (event) => {
     solution: formData.get("solution"),
     result: formData.get("result"),
     period: formData.get("period"),
+    date: formData.get("date"),
     industry: formData.get("industry"),
   });
 
-let AIRole = `
-Du bist ein erfahrener Projektmanager.
-
-Deine Aufgabe besteht aus zwei Schritten:
-
-1. Du analysierst das gegebene Ziel, das der Benutzer dir nennt, und gibst eine vollständige Liste aller notwendigen Aufgaben aus, die erledigt werden müssen, um dieses Ziel zu erreichen. Du beachtest dabei logische Reihenfolge, mögliche Abhängigkeiten und Zeitbedarf pro Aufgabe.
-
-2. Danach wandelst du diese Aufgaben in ein Google-Kalender-kompatibles Format (.ics) um. Für jeden Task legst du fest:
-– Den Starttermin (beginnend am nächsten Werktag, also ohne Samstag/Sonntag),
-– Eine Anfangszeit (z. B. 09:00 Uhr),
-– Eine Dauer (z. B. 2 Stunden).
-
-Du erzeugst daraus einen vollständigen `.ics`-Kalendertext, der vom Benutzer in Google Calendar importiert werden kann.
-
-Antwortformat:
-Zuerst gibst du die **Aufgabenliste** in Klartext aus (stichpunktartig oder nummeriert).  
-Dann folgt der **Kalender-Inhalt im `.ics`-Format**, eingerahmt von den Tags \`\`\`ics und \`\`\`.
-
-Beispiel:
-\`\`\`ics
-BEGIN:VCALENDAR
-...
-END:VCALENDAR
-\`\`\`
-
-Beginne erst mit deiner Analyse, wenn der Benutzer sein Ziel, Lösung und Zeitraum eingegeben hat.
-`
-
+let AIRole = "Du bist ein Projektmanager und listest die notwendigen Aufgaben auf, die Erfüllung des Ziels notwendig sind. In einem zweiten Schritt berechnest Du sie in einen Google Kalender Format (ics) herunter. Du kannst als nächsten Starttermin einfach den folgenden Tag verwenden. Samstage und Sonntag sind frei."  
 let prompt = "1. Mein Problem, was ich lösen möchte ist: " + formData.get("problem")
  + " // 2. Die Lösung, die ich aktuell sehe ist: " + formData.get("solution")
  +  " // 3. Ich sehe das Ergebnis in der Form von: " + formData.get("result")
  +  " // 4. Der Zeitraum den ich einplane ist in Monaten: " + formData.get("period")
- +  " // 5. Die Industrie oder Nische ist: " + formData.get("industry");
+  +  " // 5. Das Start Datum ist: " + formData.get("date")  
+ +  " // 6. Die Industrie oder Nische ist: " + formData.get("industry");
 
-
-
+ const fullPrompt = AIRole + prompt;
+props.onPromptChange(fullPrompt);
+console.log(fullPrompt);
 
  
-const fullPrompt = AIRole + "\n\n" + userPrompt;
-
-// console.log(fullPrompt);
 
 props.onPromptChange(AIRole + prompt);
 
@@ -123,17 +97,20 @@ Alter
    <br />
 <input type="text"  name="solution" />
    <br /> <br />
-  <b>3 In welchem Zeitraum willst Du das Ergebnis fertig haben?</b>
+  <b>3 In welchem Zeitraum willst Du das Ergebnis fertig haben (in Monaten)?</b>
+   <br />  
+<input type="text"  name="period" />
+ <b>4 In welchem Zeitraum willst Du das Ergebnis fertig haben (in Monaten)?</b>
    <br />  
 <input type="text"  name="period" />
      <br /> <br />
-  <b>4 Welche Art von Ergebnis erwartest Du?</b>
+  <b>5 Start Datum</b>
   <br/>
-    (Prototyp, fertiges Endprodukt)
-    <input type="text"  name="result" />
+    
+    <input type="date"  name="date" />
    <br />  <br /> 
 
-    <b>5 Wie würdest Du Deine Nische oder Industrie bezeichnen?</b>
+    <b>6 Wie würdest Du Deine Nische oder Industrie bezeichnen?</b>
   <br/>
     (Online, Warenverkauf, Dienstleistung)
     <input type="text"  name="industry" />
