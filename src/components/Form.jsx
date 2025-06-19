@@ -5,12 +5,12 @@ export default function Form(props){
       const [sex, setSex] =  useState("")
       const [country, setCountry ] = useState("Deutschland")
       const [promptInfo, setPromptInfo] = useState({
-        problem: "Zu wenig Lehrer",
-        solution: "flexiblere Arbeitszeiten",
-        result: "Software",
-        period: "12", 
+        problem: "",
+        solution: "",
+        result: "",
+        period: "", 
         date: "", 
-        industry: "Software"
+        industry: ""
     }
     )
 

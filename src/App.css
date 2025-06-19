@@ -31,6 +31,18 @@ top:70px;
  display:none;
 */
  
+.ics-downloads {
+  margin-top: 10px;
+  padding: 10px;
+  background-color: #f8f9fa;
+  border-radius: 6px;
+  border-left: 3px solid #4CAF50;
+}
+
+.ics-download-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
 
 .chat-container {
   flex: 1;

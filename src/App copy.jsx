@@ -9,9 +9,8 @@ function App() {
   const [isLoading, setIsLoading] = useState(false);
   const [uploadedFiles, setUploadedFiles] = useState([]);
   
-   const [gesamtPrompt, setGesamtPrompt] = useState("");
-   const [display, setDisplay] = useState("none");
-
+   const [gesamtPrompt, setGesamtPrompt] = useState("")
+ const [display, setDisplay] = useState("none");
    
 const sendMessage = async () => {
   if (!inputMessage.trim() && uploadedFiles.length === 0) return;
@@ -51,46 +50,11 @@ const sendMessage = async () => {
     });
 
     const data = await response.json();
-{/*
-      const assistantMessage = {
+
+    const assistantMessage = {
       role: 'assistant',
       content: data.choices?.[0]?.message?.content || 'Keine Antwort generiert.'
     };
-  */}
-
-
-  const rawContent = data.choices?.[0]?.message?.content || '';
-const icsMatch = rawContent.match(/```ics([\s\S]*?)```/i);
-
-if (icsMatch) {
-  const icsContent = icsMatch[1].trim();
-  const blob = new Blob([icsContent], { type: 'text/calendar' });
-  const icsDownloadUrl = URL.createObjectURL(blob);
-
-  setMessages(prev => [
-    ...prev,
-    {
-      role: 'assistant',
-      content: (
-        <>
-          <p>Hier ist dein Kalender-Download:</p>
-          <a href={icsDownloadUrl} download="projektplan.ics">
-            📅 Kalender herunterladen (.ics)
-          </a>
-        </>
-      )
-    }
-  ]);
-} else {
-  setMessages(prev => [
-    ...prev,
-    {
-      role: 'assistant',
-      content: rawContent
-    }
-  ]);
-}
-
 
     setMessages(prev => [...prev, assistantMessage]);
 
@@ -155,24 +119,22 @@ if (icsMatch) {
 
   return (
     <div className="app-container">
-      {/*
-       
-       */}
-       <div  >
+      <div  >
        <button  onClick={()=> setDisplay("none")}>zurück</button>
        <button onClick={()=> setDisplay("block")}>weiter</button>    
-</div>
-     <div  id="form-all-id"  style={{display:"block"}} >
-  <Form onPromptChange={setGesamtPrompt} />
-     </div>
-    
+    </div>
+
+
+       <div  id="form-all-id"  style={{display:"block"}} >
+      <Form onPromptChange={setGesamtPrompt} />
+      </div>
       <br/>
         {gesamtPrompt}
 
 
       <br/>
      
-       
+     
        {/* Chat  Container All */}
       <div id="chatbot-all-id" style={{display:display}} >
       <h2>AI Chatbot </h2>
@@ -282,8 +244,9 @@ if (icsMatch) {
           </button>
         </div>
       </div>
-      </div>
     </div>
+
+        </div>
   );
 }
 
