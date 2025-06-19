@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import Form from './components/Form';
 import { Upload, X, File } from 'lucide-react';
 import './App.css';
 
@@ -7,64 +8,103 @@ function App() {
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [uploadedFiles, setUploadedFiles] = useState([]);
+  
+   const [gesamtPrompt, setGesamtPrompt] = useState("");
+   const [display, setDisplay] = useState("none");
 
-  const sendMessage = async () => {
-    if (!inputMessage.trim()) return;
+   
+const sendMessage = async () => {
+  if (!inputMessage.trim() && uploadedFiles.length === 0) return;
 
-    // Create user message with file context if files are uploaded
-    let messageContent = inputMessage;
-    if (uploadedFiles.length > 0) {
-      const fileContext = uploadedFiles.map(file => 
-        `[File: ${file.name}]\n${file.content}`
-      ).join('\n\n---\n\n');
-      
-      messageContent = `${messageContent}\n\n[Uploaded Files Context:]\n${fileContext}`;
-    }
+  let messageContent = inputMessage;
 
-    const userMessage = { role: 'user', content: messageContent };
-    setMessages(prev => [...prev, { role: 'user', content: inputMessage }]); // Show only user input in UI
-    setInputMessage('');
-    setIsLoading(true);
+  // Combine file content if available
+  if (uploadedFiles.length > 0) {
+    const fileContext = uploadedFiles.map(file =>
+      `[Datei: ${file.name}]\n${file.content}`
+    ).join('\n\n---\n\n');
 
-    try {
-      // Send conversation history with file context included
-      const conversationHistory = [...messages, userMessage];
-      
-      const response = await fetch('/ai-airtable', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          message: messageContent,
-          messages: conversationHistory,
-          files: uploadedFiles // Keep this for backend processing if needed
-        }),
-      });
+    messageContent = `${messageContent}\n\n[Hochgeladene Dateien:]\n${fileContext}`;
+  }
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
+  const userMessage = { role: 'user', content: messageContent };
 
-      const data = await response.json();
-      console.log("AI Response:", data);
+  setMessages(prev => [...prev, userMessage]);
+  setInputMessage('');
+  setIsLoading(true);
 
+  try {
+    const conversationHistory = [
+      { role: "system", content: gesamtPrompt },
+      ...messages,
+      userMessage
+    ];
+
+    const response = await fetch('/ai', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        message: messageContent,
+        messages: conversationHistory,
+        files: uploadedFiles
+      }),
+    });
+
+    const data = await response.json();
+{/*
       const assistantMessage = {
-        role: 'assistant',
-        content: data.choices?.[0]?.message?.content || 'Entschuldigung, ich konnte keine Antwort generieren.'
-      };
+      role: 'assistant',
+      content: data.choices?.[0]?.message?.content || 'Keine Antwort generiert.'
+    };
+  */}
 
-      setMessages(prev => [...prev, assistantMessage]);
 
-    } catch (error) {
-      console.error("Error sending message:", error);
-      const errorMessage = {
-        role: 'assistant',
-        content: 'Entschuldigung, es gab einen Fehler bei der Verarbeitung deiner Nachricht.'
-      };
-      setMessages(prev => [...prev, errorMessage]);
-    } finally {
-      setIsLoading(false);
+  const rawContent = data.choices?.[0]?.message?.content || '';
+const icsMatch = rawContent.match(/```ics([\s\S]*?)```/i);
+
+if (icsMatch) {
+  const icsContent = icsMatch[1].trim();
+  const blob = new Blob([icsContent], { type: 'text/calendar' });
+  const icsDownloadUrl = URL.createObjectURL(blob);
+
+  setMessages(prev => [
+    ...prev,
+    {
+      role: 'assistant',
+      content: (
+        <>
+          <p>Hier ist dein Kalender-Download:</p>
+          <a href={icsDownloadUrl} download="projektplan.ics">
+            📅 Kalender herunterladen (.ics)
+          </a>
+        </>
+      )
     }
-  };
+  ]);
+} else {
+  setMessages(prev => [
+    ...prev,
+    {
+      role: 'assistant',
+      content: rawContent
+    }
+  ]);
+}
+
+
+    setMessages(prev => [...prev, assistantMessage]);
+
+  } catch (error) {
+    console.error("Error sending message:", error);
+    setMessages(prev => [...prev, {
+      role: 'assistant',
+      content: 'Fehler bei der Verarbeitung.'
+    }]);
+  } finally {
+    setIsLoading(false);
+  }
+};
+
 
   const handleKeyPress = (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -115,11 +155,29 @@ function App() {
 
   return (
     <div className="app-container">
-      AI Chatbot
+      {/*
        
-      
+       */}
+       <div  >
+       <button  onClick={()=> setDisplay("none")}>zurück</button>
+       <button onClick={()=> setDisplay("block")}>weiter</button>    
+</div>
+     <div  id="form-all-id"  style={{display:"block"}} >
+  <Form onPromptChange={setGesamtPrompt} />
+     </div>
+    
+      <br/>
+        {gesamtPrompt}
+
+
+      <br/>
+     
+       
+       {/* Chat  Container All */}
+      <div id="chatbot-all-id" style={{display:display}} >
+      <h2>AI Chatbot </h2>
       {/* Chat Messages Container */}
-      <div className="chat-container">
+      <div className="chat-container"   >
         {messages.length === 0 ? (
           <div className="empty-chat">
             Beginne eine Unterhaltung...
@@ -223,6 +281,7 @@ function App() {
             {isLoading ? 'Senden...' : 'Senden'}
           </button>
         </div>
+      </div>
       </div>
     </div>
   );

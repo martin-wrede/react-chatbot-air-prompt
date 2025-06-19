@@ -10,7 +10,7 @@ function App() {
   const [uploadedFiles, setUploadedFiles] = useState([]);
   
    const [gesamtPrompt, setGesamtPrompt] = useState("")
-
+ const [display, setDisplay] = useState("none");
    
 const sendMessage = async () => {
   if (!inputMessage.trim() && uploadedFiles.length === 0) return;
@@ -119,20 +119,27 @@ const sendMessage = async () => {
 
   return (
     <div className="app-container">
+      <div  >
+       <button  onClick={()=> setDisplay("none")}>zurück</button>
+       <button onClick={()=> setDisplay("block")}>weiter</button>    
+    </div>
 
 
-     
+       <div  id="form-all-id"  style={{display:"block"}} >
       <Form onPromptChange={setGesamtPrompt} />
+      </div>
       <br/>
         {gesamtPrompt}
 
 
       <br/>
+     
+     
+       {/* Chat  Container All */}
+      <div id="chatbot-all-id" style={{display:display}} >
       <h2>AI Chatbot </h2>
-       
-      
       {/* Chat Messages Container */}
-      <div className="chat-container">
+      <div className="chat-container"   >
         {messages.length === 0 ? (
           <div className="empty-chat">
             Beginne eine Unterhaltung...
@@ -238,6 +245,8 @@ const sendMessage = async () => {
         </div>
       </div>
     </div>
+
+        </div>
   );
 }
 
