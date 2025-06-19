@@ -11,6 +11,7 @@ function App() {
   
   const [gesamtPrompt, setGesamtPrompt] = useState("")
   const [display, setDisplay] = useState("none");
+  const [counter, setCounter] = useState("none");
 
   // Funktion zum Extrahieren von ICS-Inhalten aus Text
   const extractIcsContent = (text) => {
@@ -57,7 +58,7 @@ function App() {
         downloadLinks.push(downloadLink);
       });
     }
-    
+    g
     return {
       originalContent: content,
       icsContents,
@@ -177,21 +178,36 @@ function App() {
 
   return (
     <div className="app-container">
-      <div>
-        <button onClick={() => setDisplay("none")}>zurück</button>
-        <button onClick={() => setDisplay("block")}>weiter</button>    
-      </div>
-
-      <div id="form-all-id" style={{display:"block"}}>
-        <Form onPromptChange={setGesamtPrompt} />
+    <div    style={{ display:counter }}  >
+        <button onClick={() => setDisplay("none")}>zurück </button>
+        <button  onClick={() => setDisplay("block")}>weiter </button>    
       </div>
       <br/>
-      {gesamtPrompt}
+        <br/>
+
+      <div id="form-all-id" style={{display:"block"}}>
+        <Form onPromptChange={setGesamtPrompt} onDisplayChange={setDisplay} 
+        onCounterChange={setCounter}
+        />
+      </div>
+      <br/>
+      {/* 
+        
+      
+      */}
+     {gesamtPrompt}  
+    
       <br/>
      
       {/* Chat Container All */}
       <div id="chatbot-all-id" style={{display:display}}>
+
+     
+
+<br/> 
         <h2>AI Chatbot / Download link</h2>
+<br/> 
+        
         {/* Chat Messages Container */}
         <div className="chat-container">
           {messages.length === 0 ? (
@@ -331,8 +347,11 @@ function App() {
             >
               {isLoading ? 'Senden...' : 'Senden'}
             </button>
+          
           </div>
+
         </div>
+        
       </div>
     </div>
   );

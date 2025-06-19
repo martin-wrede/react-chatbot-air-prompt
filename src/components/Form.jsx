@@ -10,14 +10,20 @@ export default function Form(props){
         result: "",
         period: "", 
         date: "", 
+        dailyStartTime: "", 
+        dailyHours: "", 
         industry: ""
     }
     )
 
       const [gesamtPrompt, setGesamtPrompt] = useState("")
+        const [display, setDisplay] = useState("block");
+          const [counter, setCounter] = useState("block");
 
 const handleSubmit = (event) => {
   event.preventDefault();
+  setDisplay("block")
+  setCounter("block")
 
   const formData = new FormData(event.target);
 
@@ -27,6 +33,8 @@ const handleSubmit = (event) => {
     result: formData.get("result"),
     period: formData.get("period"),
     date: formData.get("date"),
+    dailyStartTime: formData.get("dailyStartTime"),
+    dailyHours: formData.get("dailyHours"),
     industry: formData.get("industry"),
   });
 
@@ -65,17 +73,22 @@ let prompt = "1. Mein Problem, was ich lösen möchte ist: " + formData.get("pro
  +  " // 3. Ich sehe das Ergebnis in der Form von: " + formData.get("result")
  +  " // 4. Der Zeitraum den ich einplane ist in Monaten: " + formData.get("period")
   +  " // 5. Der Projektstart ist am: " + formData.get("date")
- +  " // 6. Die Industrie oder Nische ist: " + formData.get("industry");
+   +  " // 6. Der Projektstart ist am: " + formData.get("dailyStartTime")
+    +  " // 6. Der Projektstart ist am: " + formData.get("dailyHours")
+ +  " // 8. Die Industrie oder Nische ist: " + formData.get("industry");
 
 
 
 
 const fullPrompt = AIRole + "\n\n" + prompt;
 
- console.log(fullPrompt);
+console.log(display);
+console.log(counter);
 
 props.onPromptChange(fullPrompt);
 
+props.onDisplayChange(display);
+props.onCounterChange(counter);
 };
 
    
@@ -117,36 +130,51 @@ Alter
         />
      <br />     <br />  <br />
  
-  <b>1 Welches Haupt-Problem willst du lösen?</b>
+  <b>1. Welches Haupt-Problem willst du lösen?</b>
       <br />
   <input type="text"  name="problem" /> 
 
      <br />     <br />
- <b>2 Welche Lösung siehst Du dafür?</b>
+ <b>2. Welche Lösung siehst Du dafür?</b>
 
    <br />
 <input type="text"  name="solution" />
    <br /> <br />
-  <b>3 In welchem Zeitraum willst Du das Ergebnis fertig haben - in Monaten? </b>
+  <b>3. In welchem Zeitraum willst Du das Ergebnis fertig haben - in Monaten? </b>
    <br />  
 <input type="text"  name="period" />
      <br /> <br />
-  <b>4 Welche Art von Ergebnis erwartest Du?</b>
+  <b>4. Welche Art von Ergebnis erwartest Du?</b>
   <br/>
-    (z.B. Prototyp, fertiges Endprodukt)
+    (z.B. Prototyp, fertiges Endprodukt)&nbsp;
     <input type="text"  name="result" />
    <br />  <br /> 
 
-    <b>5 Wann ist der Projekt Start?</b>
+    <b>5. Wann ist der Projekt Start?</b>
   <br/>  <br/>
-    (2025/06/01)
+    (2025/06/01)&nbsp;
+    <input type="text"  name="result" />
     <input type="text"  name="date" />
    <br />  
 
 
-    <b>6 Wie würdest Du Deine Nische oder Industrie bezeichnen?</b>
+
+   <b>6. Wann fängst Du an zu arbeiten?</b>
+  <br/>  <br/>
+    <input type="text"  name="dailyStartTime" />
+   <br />  
+
+   <b>7. Wieviel Stunden wirst Du an dem Projekt arbeiten?</b>
+  <br/>  <br/>
+    
+    <input type="text"  name="dailyHours" />
+   <br />  
+
+
+    <b>8. Wie würdest Du Deine Nische oder Industrie bezeichnen?</b>
   <br/>
-    (z. B. Online, Warenverkauf, Dienstleistung)
+    (z. B. Online, Warenverkauf, Dienstleistung)&nbsp;
+    <input type="text"  name="result" />
     <input type="text"  name="industry" />
    <br />  
 
@@ -154,11 +182,12 @@ Alter
 
      <br /> <br />
      <button className="button" type="submit">
-          Submit
+         absenden
         </button>
         
  </form>
  {gesamtPrompt}
+ 
         </div>
     )
 }
