@@ -58,7 +58,7 @@ function App() {
         downloadLinks.push(downloadLink);
       });
     }
-    g
+    
     return {
       originalContent: content,
       icsContents,
@@ -103,8 +103,27 @@ function App() {
         }),
       });
 
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`HTTP ${response.status}: ${errorText}`);
+      }
+
       const data = await response.json();
-      const aiContent = data.choices?.[0]?.message?.content || 'Keine Antwort generiert.';
+
+      // Sichere Extraktion des AI-Inhalts mit mehreren Fallbacks
+      let aiContent = '';
+      
+      if (data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content) {
+        aiContent = data.choices[0].message.content;
+      } else if (data.reply) {
+        aiContent = data.reply;
+      } else if (data.content) {
+        aiContent = data.content;
+      } else if (typeof data === 'string') {
+        aiContent = data;
+      } else {
+        aiContent = 'Fehler: Unerwartete Antwortstruktur von der AI.';
+      }
       
       // Verarbeite die AI-Antwort für ICS-Inhalte
       const processedResponse = processAIResponse(aiContent);
@@ -120,9 +139,10 @@ function App() {
 
     } catch (error) {
       console.error("Error sending message:", error);
+      
       setMessages(prev => [...prev, {
         role: 'assistant',
-        content: 'Fehler bei der Verarbeitung.'
+        content: `Fehler bei der Verarbeitung: ${error.message}`
       }]);
     } finally {
       setIsLoading(false);
@@ -191,18 +211,11 @@ function App() {
         />
       </div>
       <br/>
-      {/* 
-        
-      
-      */}
-     {gesamtPrompt}  
-    
+      {gesamtPrompt}  
       <br/>
      
       {/* Chat Container All */}
       <div id="chatbot-all-id" style={{display:display}}>
-
-     
 
 <br/> 
         <h2>AI Chatbot / Download link</h2>

@@ -151,30 +151,28 @@ Alter
    <br />  <br /> 
 
     <b>5. Wann ist der Projekt Start?</b>
-  <br/>  <br/>
+  <br/>   
     (2025/06/01)&nbsp;
-    <input type="text"  name="result" />
     <input type="text"  name="date" />
    <br />  
-
+ <br/>
 
 
    <b>6. Wann fängst Du an zu arbeiten?</b>
-  <br/>  <br/>
+  <br/> 
     <input type="text"  name="dailyStartTime" />
    <br />  
-
+ <br/>
    <b>7. Wieviel Stunden wirst Du an dem Projekt arbeiten?</b>
-  <br/>  <br/>
+  <br/> 
     
     <input type="text"  name="dailyHours" />
    <br />  
 
-
+ <br/> 
     <b>8. Wie würdest Du Deine Nische oder Industrie bezeichnen?</b>
   <br/>
     (z. B. Online, Warenverkauf, Dienstleistung)&nbsp;
-    <input type="text"  name="result" />
     <input type="text"  name="industry" />
    <br />  
 
