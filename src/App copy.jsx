@@ -177,12 +177,16 @@ function App() {
 
   return (
     <div className="app-container">
+      {/*g
       <div>
         <button onClick={() => setDisplay("none")}>zurück</button>
         <button onClick={() => setDisplay("block")}>weiter</button>    
       </div>
+      */}
 
-      <div id="form-all-id" style={{display:"block"}}>
+      <div id="form-all-id"  
+     // style={{display:"block"}}
+      >
         <Form onPromptChange={setGesamtPrompt} />
       </div>
       <br/>
@@ -190,7 +194,11 @@ function App() {
       <br/>
      
       {/* Chat Container All */}
-      <div id="chatbot-all-id" style={{display:display}}>
+      <div 
+      //id="chatbot-all-id" 
+       className="chat-container"
+     //  style={{display:display}}
+       >
         <h2>AI Chatbot / Download link</h2>
         {/* Chat Messages Container */}
         <div className="chat-container">

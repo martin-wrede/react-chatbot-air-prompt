@@ -12,6 +12,62 @@ function App() {
   const [gesamtPrompt, setGesamtPrompt] = useState("")
   const [display, setDisplay] = useState("none");
 
+  // Hilfsfunktion zum Formatieren von ICS-Datumsangaben
+  const formatIcsDate = (icsDate) => {
+    if (!icsDate) return 'Unbekannt';
+    
+    // ICS-Format: 20250624T090000Z
+    const year = icsDate.substring(0, 4);
+    const month = icsDate.substring(4, 6);
+    const day = icsDate.substring(6, 8);
+    const hour = icsDate.substring(9, 11);
+    const minute = icsDate.substring(11, 13);
+    
+    return `${day}.${month}.${year} ${hour}:${minute}`;
+  };
+
+  // Hilfsfunktion zum Parsen von ICS-Inhalten
+  const parseIcsContent = (icsText) => {
+    // Einfache Extraktion der wichtigsten Informationen
+    const events = [];
+    const eventBlocks = icsText.split('BEGIN:VEVENT');
+    
+    eventBlocks.slice(1).forEach(block => {
+      const lines = block.split('\n');
+      const event = {};
+      
+      lines.forEach(line => {
+        if (line.startsWith('SUMMARY:')) {
+          event.summary = line.replace('SUMMARY:', '').trim();
+        }
+        if (line.startsWith('DTSTART:')) {
+          event.start = line.replace('DTSTART:', '').trim();
+        }
+        if (line.startsWith('DTEND:')) {
+          event.end = line.replace('DTEND:', '').trim();
+        }
+        if (line.startsWith('DESCRIPTION:')) {
+          event.description = line.replace('DESCRIPTION:', '').trim();
+        }
+      });
+      
+      if (event.summary) {
+        events.push(event);
+      }
+    });
+    
+    // Formatierte Ausgabe für den Chat-Kontext
+    if (events.length > 0) {
+      return `ICS-Kalender mit ${events.length} Terminen:\n\n` + 
+             events.map(event => 
+               `- ${event.summary} (${formatIcsDate(event.start)})`
+             ).join('\n') + 
+             `\n\nOriginal ICS-Inhalt:\n${icsText}`;
+    }
+    
+    return icsText;
+  };
+
   // Funktion zum Extrahieren von ICS-Inhalten aus Text
   const extractIcsContent = (text) => {
     const icsRegex = /```ics\n([\s\S]*?)\n```/g;
@@ -65,6 +121,52 @@ function App() {
     };
   };
 
+  // KORRIGIERTE handleFileUpload Funktion mit .ics Support
+  const handleFileUpload = async (event) => {
+    const files = Array.from(event.target.files);
+    
+    for (const file of files) {
+      try {
+        let content;
+        let fileType;
+        
+        // Textdateien (.txt)
+        if (file.type === 'text/plain' || file.name.endsWith('.txt')) {
+          content = await file.text();
+          fileType = 'text';
+        }
+        // ICS Kalender-Dateien
+        else if (file.name.endsWith('.ics') || file.type === 'text/calendar') {
+          content = await file.text();
+          fileType = 'calendar';
+          
+          // ICS-Inhalt parsen für bessere Darstellung
+          content = parseIcsContent(content);
+        }
+        else {
+          alert(`${file.name} ist kein unterstütztes Dateiformat. Nur .txt und .ics Dateien sind erlaubt.`);
+          continue;
+        }
+
+        const fileData = {
+          id: Date.now() + Math.random(),
+          name: file.name,
+          content: content,
+          type: fileType,
+          size: file.size,
+          uploadedAt: new Date().toLocaleString('de-DE')
+        };
+        
+        setUploadedFiles(prev => [...prev, fileData]);
+      } catch (error) {
+        console.error('Error reading file:', error);
+        alert(`Fehler beim Lesen der Datei ${file.name}`);
+      }
+    }
+    
+    event.target.value = '';
+  };
+
   const sendMessage = async () => {
     if (!inputMessage.trim() && uploadedFiles.length === 0) return;
 
@@ -73,7 +175,7 @@ function App() {
     // Combine file content if available
     if (uploadedFiles.length > 0) {
       const fileContext = uploadedFiles.map(file =>
-        `[Datei: ${file.name}]\n${file.content}`
+        `[Datei: ${file.name} (${file.type})]\n${file.content}`
       ).join('\n\n---\n\n');
 
       messageContent = `${messageContent}\n\n[Hochgeladene Dateien:]\n${fileContext}`;
@@ -135,34 +237,6 @@ function App() {
     }
   };
 
-  const handleFileUpload = async (event) => {
-    const files = Array.from(event.target.files);
-    
-    for (const file of files) {
-      if (file.type === 'text/plain' || file.name.endsWith('.txt')) {
-        try {
-          const content = await file.text();
-          const fileData = {
-            id: Date.now() + Math.random(),
-            name: file.name,
-            content: content,
-            size: file.size,
-            uploadedAt: new Date().toLocaleString('de-DE')
-          };
-          
-          setUploadedFiles(prev => [...prev, fileData]);
-        } catch (error) {
-          console.error('Error reading file:', error);
-          alert(`Fehler beim Lesen der Datei ${file.name}`);
-        }
-      } else {
-        alert(`${file.name} ist keine Textdatei. Nur .txt Dateien sind erlaubt.`);
-      }
-    }
-    
-    event.target.value = '';
-  };
-
   const deleteFile = (fileId) => {
     setUploadedFiles(prev => prev.filter(file => file.id !== fileId));
   };
@@ -177,16 +251,7 @@ function App() {
 
   return (
     <div className="app-container">
-      {/*g
-      <div>
-        <button onClick={() => setDisplay("none")}>zurück</button>
-        <button onClick={() => setDisplay("block")}>weiter</button>    
-      </div>
-      */}
-
-      <div id="form-all-id"  
-     // style={{display:"block"}}
-      >
+      <div id="form-all-id">
         <Form onPromptChange={setGesamtPrompt} />
       </div>
       <br/>
@@ -194,11 +259,7 @@ function App() {
       <br/>
      
       {/* Chat Container All */}
-      <div 
-      //id="chatbot-all-id" 
-       className="chat-container"
-     //  style={{display:display}}
-       >
+      <div className="chat-container">
         <h2>AI Chatbot / Download link</h2>
         {/* Chat Messages Container */}
         <div className="chat-container">
@@ -262,22 +323,22 @@ function App() {
           )}
         </div>
 
-        {/* File Upload Section */}
+        {/* KORRIGIERTE File Upload Section */}
         <div className="file-section">
           <div className="file-upload-header">
             <label className="upload-button">
               <Upload size={16} />
-              Textdateien hochladen
+              Text- und Kalender-Dateien hochladen
               <input
                 type="file"
                 multiple
-                accept=".txt,text/plain"
+                accept=".txt,.ics,text/plain,text/calendar"
                 onChange={handleFileUpload}
                 className="file-input"
               />
             </label>
             <span className="file-hint">
-              Nur .txt Dateien erlaubt
+              .txt und .ics Dateien erlaubt
             </span>
           </div>
 
@@ -293,10 +354,10 @@ function App() {
                       <File size={14} color="#666" />
                       <div className="file-details">
                         <div className="file-name">
-                          {file.name}
+                          {file.name} {file.type === 'calendar' && '📅'}
                         </div>
                         <div className="file-meta">
-                          {formatFileSize(file.size)} • {file.uploadedAt}
+                          {formatFileSize(file.size)} • {file.uploadedAt} • {file.type === 'calendar' ? 'Kalender' : 'Text'}
                         </div>
                       </div>
                     </div>
